@@ -11,7 +11,7 @@ export const siteConfig = {
     },
   ],
   links: {
-    twitter: "https://x.com/fuegolabz",
+    twitter: "https://x.com/FuegoLabz",
     docs: "",
   },
   authors: [{ name: "Fuego Labz", url: "https://fuegolabz.io" }],
@@ -34,7 +34,7 @@ export const siteConfig = {
     title: "Solana Token Creator",
     description:
       "A user-friendly web application for creating and distributing SPL tokens using the **Token-2022** program on the Solana blockchain, with integrated support for on-chain metadata and permanent storage.",
-    creator: "@fuegolabz",
+    creator: "@FuegoLabz",
     images: ["/logo.png"],
   },
   keywords: [
