@@ -17,7 +17,7 @@ A user-friendly web application for creating and distributing SPL tokens using t
 - **Frontend**: Next.js, TypeScript, Tailwind CSS
 - **Blockchain**: Solana Web3.js, SPL Token-2022 Extensions
 - **Storage**: Arweave via Bundlr Network (using SOL)
-- **UI Components**: [radix-ui](https://www.radix-ui.com/)
+- **UI Components**: [radix-ui](https://www.radix-ui.com/) - [shadcn/ui](https://ui.shadcn.com/)
 
 ## Prerequisites
 
@@ -113,3 +113,4 @@ MIT License – see `LICENSE` file.
 - [Arweave](https://www.arweave.org/)
 - [Bundlr Network](https://bundlr.network/)
 - [radix-ui](https://www.radix-ui.com/)
+- [shadcn/ui](https://ui.shadcn.com/)
