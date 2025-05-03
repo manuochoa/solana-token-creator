@@ -14,7 +14,7 @@ export async function uploadImageToArweave(
 
   const providerUrl =
     network === WalletAdapterNetwork.Mainnet
-      ? "https://proud-soft-emerald.solana-mainnet.quiknode.pro/63e220c97a3db24e0826c67770818749f32d804e/"
+      ? "https://proud-soft-emerald.solana-mainnet.quiknode.pro/63e220c97a3db24e0826c67770818749f32d804e/" // this is a test one and may not work in the future
       : // ? "https://api.mainnet-beta.solana.com"
         "https://api.devnet.solana.com";
 
@@ -53,7 +53,7 @@ export async function uploadMetadataToArweave(
 
   const providerUrl =
     network === WalletAdapterNetwork.Mainnet
-      ? "https://proud-soft-emerald.solana-mainnet.quiknode.pro/63e220c97a3db24e0826c67770818749f32d804e/"
+      ? "https://proud-soft-emerald.solana-mainnet.quiknode.pro/63e220c97a3db24e0826c67770818749f32d804e/" // this is a test one and may not work in the future
       : // ? "https://api.mainnet-beta.solana.com"
         "https://api.devnet.solana.com";
 

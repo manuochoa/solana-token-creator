@@ -38,7 +38,7 @@ export default function WalletContextProvider({
   const endpoint = useMemo(() => {
     console.log("Setting endpoint for network:", network);
     if (network === WalletAdapterNetwork.Mainnet) {
-      return "https://proud-soft-emerald.solana-mainnet.quiknode.pro/63e220c97a3db24e0826c67770818749f32d804e/";
+      return "https://proud-soft-emerald.solana-mainnet.quiknode.pro/63e220c97a3db24e0826c67770818749f32d804e/"; // this is a test one and may not work in the future
       // return "https://api.mainnet-beta.solana.com"
     }
     return clusterApiUrl(network);
