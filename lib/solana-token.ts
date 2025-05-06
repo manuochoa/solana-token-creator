@@ -19,6 +19,7 @@ import {
   createInitializeMetadataPointerInstruction,
   createSetAuthorityInstruction,
   AuthorityType,
+  createInitializeTransferFeeConfigInstruction,
 } from "@solana/spl-token";
 import {
   createInitializeInstruction,
@@ -161,11 +162,17 @@ export async function createToken(
 
   const metadataExtensionSize = TYPE_SIZE + LENGTH_SIZE;
   const metadataLen = pack(metaData).length;
-  const mintLen = getMintLen([ExtensionType.MetadataPointer]);
+  const mintLen = getMintLen([
+    ExtensionType.MetadataPointer,
+    ExtensionType.TransferFeeConfig,
+  ]);
   const totalSize = mintLen + metadataExtensionSize + metadataLen;
   const lamports = await connection.getMinimumBalanceForRentExemption(
     totalSize
   );
+
+  const feeBasisPoints = 10; // 0.1% = 10 basis points (1 basis point = 0.01%)
+  const maxFee = BigInt(100000000000000); //100 million tokens
 
   const instructions = [
     SystemProgram.createAccount({
@@ -175,6 +182,15 @@ export async function createToken(
       lamports,
       programId: TOKEN_2022_PROGRAM_ID,
     }),
+    // Initialize transfer fee extension
+    createInitializeTransferFeeConfigInstruction(
+      mint,
+      mintAuthority,
+      mintAuthority, // transfer fee config authority
+      feeBasisPoints,
+      maxFee,
+      TOKEN_2022_PROGRAM_ID
+    ),
     createInitializeMetadataPointerInstruction(
       mint,
       updateAuthority,
