@@ -22,6 +22,7 @@ import {
   changeTransferFee,
   getTokenTransferFeeConfig,
   revokeTransferFeeAuthority,
+  revokeWithdrawWithheldAuthority,
 } from "@/lib/solana-token";
 
 export default function TokenFeeManager() {
@@ -180,6 +181,47 @@ function TokenFeeManagerContent({
         err instanceof Error
           ? err.message
           : "Failed to revoke transfer fee authority"
+      );
+    } finally {
+      setIsRevoking(false);
+    }
+  };
+
+  const handleRevokeWithdrawWithheldAuthority = async () => {
+    if (!connected || !publicKey || !signTransaction) {
+      setError("Please connect your wallet");
+      return;
+    }
+    if (!mintAddress) {
+      setError("Please enter a mint address");
+      return;
+    }
+
+    setIsRevoking(true);
+
+    setError("");
+
+    setSuccess("");
+
+    try {
+      const signature = await revokeWithdrawWithheldAuthority(
+        { publicKey, signTransaction },
+        connection,
+        mintAddress
+      );
+
+      setSuccess(
+        `Withdraw withheld authority revoked successfully! Transaction: ${signature}`
+      );
+
+      // Reload the current config
+      await loadCurrentFeeConfig();
+    } catch (err) {
+      console.error("Error revoking withdraw withheld authority:", err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to revoke withdraw withheld authority"
       );
     } finally {
       setIsRevoking(false);
@@ -372,6 +414,19 @@ function TokenFeeManagerContent({
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     )}
                     {isRevoking ? "Revoking..." : "Revoke Fee Authority"}
+                  </Button>
+
+                  <Button
+                    onClick={handleRevokeWithdrawWithheldAuthority}
+                    disabled={isUpdating || isRevoking}
+                    variant="destructive"
+                  >
+                    {isRevoking && (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
+                    {isRevoking
+                      ? "Revoking..."
+                      : "Revoke Withdraw Withheld Authority"}
                   </Button>
                 </div>
 

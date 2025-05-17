@@ -487,3 +487,60 @@ export async function revokeTransferFeeAuthority(
     throw error;
   }
 }
+
+// Function to revoke withdraw withheld authority (prevents withdrawing fees)
+export async function revokeWithdrawWithheldAuthority(
+  wallet: {
+    publicKey: PublicKey;
+    signTransaction: (tx: Transaction) => Promise<Transaction>;
+  },
+  connection: Connection,
+  mintAddress: string
+): Promise<string> {
+  try {
+    if (!wallet.publicKey) {
+      throw new Error("Wallet not connected");
+    }
+
+    const mintPublicKey = new PublicKey(mintAddress);
+    const transaction = new Transaction();
+
+    // Revoke withdraw withheld authority
+    transaction.add(
+      createSetAuthorityInstruction(
+        mintPublicKey,
+        wallet.publicKey, // current authority
+        AuthorityType.WithheldWithdraw,
+        null, // new authority (null = revoke)
+        [],
+        TOKEN_2022_PROGRAM_ID
+      )
+    );
+
+    const { blockhash, lastValidBlockHeight } =
+      await connection.getLatestBlockhash();
+    transaction.recentBlockhash = blockhash;
+    transaction.feePayer = wallet.publicKey;
+
+    const signedTransaction = await wallet.signTransaction(transaction);
+    const signature = await connection.sendRawTransaction(
+      signedTransaction.serialize()
+    );
+
+    await connection.confirmTransaction({
+      blockhash,
+      lastValidBlockHeight,
+      signature,
+    });
+
+    console.log(
+      `Withdraw withheld authority revoked for token: ${mintAddress}`
+    );
+    console.log(`Transaction signature: ${signature}`);
+
+    return signature;
+  } catch (error) {
+    console.error("Error revoking withdraw withheld authority:", error);
+    throw error;
+  }
+}
