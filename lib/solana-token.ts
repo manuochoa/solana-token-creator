@@ -20,6 +20,9 @@ import {
   createSetAuthorityInstruction,
   AuthorityType,
   createInitializeTransferFeeConfigInstruction,
+  createSetTransferFeeInstruction,
+  getMint,
+  getTransferFeeConfig,
 } from "@solana/spl-token";
 import {
   createInitializeInstruction,
@@ -322,6 +325,165 @@ export async function mintTokens(
     }
   } catch (error) {
     console.error("Error minting tokens:", error);
+    throw error;
+  }
+}
+
+export async function changeTransferFee(
+  wallet: {
+    publicKey: PublicKey;
+    signTransaction: (tx: Transaction) => Promise<Transaction>;
+  },
+  connection: Connection,
+  mintAddress: string,
+  newFeeBasisPoints: number,
+  newMaxFee: bigint
+): Promise<string> {
+  try {
+    if (!wallet.publicKey) {
+      throw new Error("Wallet not connected");
+    }
+
+    // Validate fee parameters
+    if (newFeeBasisPoints < 0 || newFeeBasisPoints > 10000) {
+      throw new Error(
+        "Fee basis points must be between 0 and 10000 (0% to 100%)"
+      );
+    }
+
+    const mintPublicKey = new PublicKey(mintAddress);
+    const transaction = new Transaction();
+
+    // Add instruction to set new transfer fee
+    transaction.add(
+      createSetTransferFeeInstruction(
+        mintPublicKey,
+        wallet.publicKey, // transfer fee config authority
+        wallet.publicKey, // withdraw withheld authority (can be different)
+        newFeeBasisPoints,
+        newMaxFee,
+        TOKEN_2022_PROGRAM_ID
+      )
+    );
+
+    const { blockhash, lastValidBlockHeight } =
+      await connection.getLatestBlockhash();
+    transaction.recentBlockhash = blockhash;
+    transaction.feePayer = wallet.publicKey;
+
+    const signedTransaction = await wallet.signTransaction(transaction);
+    const signature = await connection.sendRawTransaction(
+      signedTransaction.serialize()
+    );
+
+    await connection.confirmTransaction({
+      blockhash,
+      lastValidBlockHeight,
+      signature,
+    });
+
+    console.log(`Transfer fee updated for token: ${mintAddress}`);
+    console.log(
+      `New fee: ${newFeeBasisPoints} basis points (${newFeeBasisPoints / 100}%)`
+    );
+    console.log(`New max fee: ${newMaxFee.toString()}`);
+    console.log(`Transaction signature: ${signature}`);
+
+    return signature;
+  } catch (error) {
+    console.error("Error changing transfer fee:", error);
+    throw error;
+  }
+}
+
+// Helper function to get current transfer fee configuration
+export async function getTokenTransferFeeConfig(
+  connection: Connection,
+  mintAddress: string
+): Promise<{
+  transferFeeBasisPoints: number;
+  maximumFee: bigint;
+  transferFeeConfigAuthority: PublicKey | null;
+  withdrawWithheldAuthority: PublicKey | null;
+} | null> {
+  try {
+    const mintPublicKey = new PublicKey(mintAddress);
+    const mintAccount = await getMint(
+      connection,
+      mintPublicKey,
+      undefined,
+      TOKEN_2022_PROGRAM_ID
+    );
+
+    const transferFeeConfig = getTransferFeeConfig(mintAccount);
+    if (!transferFeeConfig) {
+      return null;
+    }
+
+    return {
+      transferFeeBasisPoints:
+        transferFeeConfig.newerTransferFee.transferFeeBasisPoints,
+      maximumFee: transferFeeConfig.newerTransferFee.maximumFee,
+      transferFeeConfigAuthority: transferFeeConfig.transferFeeConfigAuthority,
+      withdrawWithheldAuthority: transferFeeConfig.withdrawWithheldAuthority,
+    };
+  } catch (error) {
+    console.error("Error getting transfer fee config:", error);
+    return null;
+  }
+}
+
+// Function to revoke transfer fee config authority (makes fee unchangeable)
+export async function revokeTransferFeeAuthority(
+  wallet: {
+    publicKey: PublicKey;
+    signTransaction: (tx: Transaction) => Promise<Transaction>;
+  },
+  connection: Connection,
+  mintAddress: string
+): Promise<string> {
+  try {
+    if (!wallet.publicKey) {
+      throw new Error("Wallet not connected");
+    }
+
+    const mintPublicKey = new PublicKey(mintAddress);
+    const transaction = new Transaction();
+
+    // Revoke transfer fee config authority
+    transaction.add(
+      createSetAuthorityInstruction(
+        mintPublicKey,
+        wallet.publicKey, // current authority
+        AuthorityType.TransferFeeConfig,
+        null, // new authority (null = revoke)
+        [],
+        TOKEN_2022_PROGRAM_ID
+      )
+    );
+
+    const { blockhash, lastValidBlockHeight } =
+      await connection.getLatestBlockhash();
+    transaction.recentBlockhash = blockhash;
+    transaction.feePayer = wallet.publicKey;
+
+    const signedTransaction = await wallet.signTransaction(transaction);
+    const signature = await connection.sendRawTransaction(
+      signedTransaction.serialize()
+    );
+
+    await connection.confirmTransaction({
+      blockhash,
+      lastValidBlockHeight,
+      signature,
+    });
+
+    console.log(`Transfer fee authority revoked for token: ${mintAddress}`);
+    console.log(`Transaction signature: ${signature}`);
+
+    return signature;
+  } catch (error) {
+    console.error("Error revoking transfer fee authority:", error);
     throw error;
   }
 }
