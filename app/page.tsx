@@ -3,6 +3,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TokenMint from "@/components/token-mint";
 import TokenFeeManager from "@/components/token-fee-manager";
+import TokenLaunch from "@/components/token-launch";
 
 export default function Home() {
   return (
@@ -19,10 +20,11 @@ export default function Home() {
           </header>
 
           <Tabs defaultValue="create" className="mb-8">
-            <TabsList className="grid w-full grid-cols-3 mb-6">
+            <TabsList className="grid w-full grid-cols-4 mb-6">
               <TabsTrigger value="create">Create New Token</TabsTrigger>
               <TabsTrigger value="mint">Mint More Tokens</TabsTrigger>
               <TabsTrigger value="fees">Manage Transfer Fees</TabsTrigger>
+              <TabsTrigger value="launch">Launch Token Sale</TabsTrigger>
             </TabsList>
             <TabsContent value="create">
               <TokenCreator />
@@ -32,6 +34,9 @@ export default function Home() {
             </TabsContent>
             <TabsContent value="fees">
               <TokenFeeManager />
+            </TabsContent>
+            <TabsContent value="launch">
+              <TokenLaunch />
             </TabsContent>
           </Tabs>
         </div>
